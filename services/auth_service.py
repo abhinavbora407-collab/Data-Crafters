@@ -133,16 +133,19 @@ def register_new_store_and_manager(
     user_id = create_user(u_clean, password, email, role="manager", store_id=store_id)
     
     # 3. Seed initial inventory from default products for the new store
-    products = query_df("SELECT id, reorder_point, target_stock_level FROM products;")
-    if not products.empty:
-        inv_records = []
-        for _, p in products.iterrows():
-            r_point = int(p['reorder_point'])
-            inv_records.append((store_id, p['id'], r_point + 10))
-        execute_many_db(
-            "INSERT OR IGNORE INTO inventory (store_id, product_id, current_stock) VALUES (?, ?, ?);",
-            inv_records
-        )
+    try:
+        products = query_df("SELECT id, reorder_point, target_stock_level FROM products;")
+        if not products.empty:
+            inv_records = []
+            for _, p in products.iterrows():
+                r_point = int(p['reorder_point'])
+                inv_records.append((int(store_id), int(p['id']), int(r_point + 10)))
+            execute_many_db(
+                "INSERT INTO inventory (store_id, product_id, current_stock) VALUES (?, ?, ?) ON CONFLICT(store_id, product_id) DO NOTHING;",
+                inv_records
+            )
+    except Exception as inv_err:
+        print(f"Notice: Initial inventory seeding for new store {store_id} skipped constraint issue: {inv_err}")
         
     # 4. Handle optional CSV file upload
     csv_msg = ""

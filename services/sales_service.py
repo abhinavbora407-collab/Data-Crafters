@@ -20,8 +20,8 @@ def process_sales_csv_upload(df_upload: pd.DataFrame) -> Tuple[int, int, str]:
         
         if s_code in stores_map and p_sku in prod_map:
             records.append((
-                stores_map[s_code],
-                prod_map[p_sku],
+                int(stores_map[s_code]),
+                int(prod_map[p_sku]),
                 str(row['sale_date']),
                 int(row['quantity_sold']),
                 float(row['revenue']),
