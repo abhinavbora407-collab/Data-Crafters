@@ -163,4 +163,4 @@ python -m unittest discover tests
 ```bash
 python -m streamlit run app.py
 ```
-Open **`http://localhost:8501`** in your browser.
+Open **`https://data-crafters-hgo6l6lppgyrqzehiuhsf5.streamlit.app/`** in your browser.
