@@ -9,7 +9,7 @@ import pandas as pd
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from database.database import query_df
-from services.forecast_service import generate_store_forecasts
+from services.forecast_service import generate_store_forecasts, generate_single_store_forecast
 from pages.login import render_login_page
 from utils.helpers import apply_custom_css, render_header
 
@@ -77,16 +77,15 @@ def render_forecast_page():
     )
     
     if fc_df.empty or hist_df.empty:
-        with st.spinner("Generating 14-day sales history & ML demand forecasts..."):
-            generate_store_forecasts(14)
-            fc_df = query_df(
-                "SELECT forecast_date, predicted_demand, lower_bound, upper_bound, model_type FROM forecasts WHERE store_id = ? AND product_id = ? ORDER BY forecast_date ASC;",
-                (s_id, p_id)
-            )
-            hist_df = query_df(
-                "SELECT sale_date, quantity_sold FROM sales_history WHERE store_id = ? AND product_id = ? ORDER BY sale_date ASC;",
-                (s_id, p_id)
-            )
+        generate_single_store_forecast(s_id, p_id, 14)
+        fc_df = query_df(
+            "SELECT forecast_date, predicted_demand, lower_bound, upper_bound, model_type FROM forecasts WHERE store_id = ? AND product_id = ? ORDER BY forecast_date ASC;",
+            (s_id, p_id)
+        )
+        hist_df = query_df(
+            "SELECT sale_date, quantity_sold FROM sales_history WHERE store_id = ? AND product_id = ? ORDER BY sale_date ASC;",
+            (s_id, p_id)
+        )
 
     # Calculate Overview Metrics
     last_hist_qty = hist_df['quantity_sold'].iloc[-1] if not hist_df.empty else 0

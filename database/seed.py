@@ -226,8 +226,12 @@ def seed_database(force_reseed: bool = False):
         conn.close()
         
     try:
-        from services.forecast_service import generate_store_forecasts
-        generate_store_forecasts(14)
+        conn = get_db_connection()
+        fc_cnt = conn.execute("SELECT COUNT(*) as cnt FROM forecasts;").fetchone()
+        conn.close()
+        if not (fc_cnt and fc_cnt['cnt'] > 100 and not force_reseed):
+            from services.forecast_service import generate_store_forecasts
+            generate_store_forecasts(14)
     except Exception:
         pass
 

@@ -45,6 +45,37 @@ def generate_store_forecasts(forecast_horizon_days: int = 14) -> int:
     st.cache_data.clear() # Clear cache on new forecast generation
     return inserted
 
+def generate_single_store_forecast(store_id: int, product_id: int, forecast_horizon_days: int = 14) -> int:
+    """Generate and record multi-step demand predictions for a single store-product pair (ultra-fast < 20ms)."""
+    from database.seed import seed_sales_history_for_store
+    hist_df = query_df(
+        "SELECT sale_date, quantity_sold, is_promotion, is_holiday FROM sales_history WHERE store_id = ? AND product_id = ? ORDER BY sale_date ASC;",
+        (store_id, product_id)
+    )
+    if hist_df.empty or len(hist_df) < 5:
+        seed_sales_history_for_store(store_id, 14)
+        hist_df = query_df(
+            "SELECT sale_date, quantity_sold, is_promotion, is_holiday FROM sales_history WHERE store_id = ? AND product_id = ? ORDER BY sale_date ASC;",
+            (store_id, product_id)
+        )
+        
+    fc_df = forecast_demand_ridge(hist_df, horizon=forecast_horizon_days)
+    records = []
+    for _, fc_row in fc_df.iterrows():
+        records.append((
+            store_id, product_id, fc_row['forecast_date'], float(fc_row['predicted_demand']),
+            float(fc_row['lower_bound']), float(fc_row['upper_bound']), str(fc_row['model_type'])
+        ))
+        
+    sql = """
+    INSERT OR REPLACE INTO forecasts 
+    (store_id, product_id, forecast_date, predicted_demand, lower_bound, upper_bound, model_type)
+    VALUES (?, ?, ?, ?, ?, ?, ?);
+    """
+    inserted = execute_many_db(sql, records)
+    st.cache_data.clear()
+    return inserted
+
 @st.cache_data(ttl=120)
 def calculate_inventory_risk_matrix(store_id: int, category_id: Any = 0, forecast_days: int = 14) -> pd.DataFrame:
     """Calculate Days of Supply and Stockout Alert Matrix using sub-millisecond cached vectorized SQL pipeline."""
