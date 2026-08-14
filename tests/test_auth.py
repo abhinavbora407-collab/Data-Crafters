@@ -1,11 +1,37 @@
 import unittest
-from services.auth_service import hash_password, verify_password, is_admin, is_manager, authenticate_user
+from services.auth_service import hash_password, verify_password, is_admin, is_manager, authenticate_user, validate_password_complexity
 from database.seed import seed_database
 
 class TestAuthService(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         seed_database()
+
+    def test_regex_password_complexity(self):
+        # Valid passwords (min 8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special char)
+        valid_passwords = [
+            "SarahAdmin2026!",
+            "MarcusMgr2026!",
+            "Ab1!5678",
+            "P@ssw0rd2026",
+            "C0mpl3x#Pass"
+        ]
+        for pwd in valid_passwords:
+            valid, msg = validate_password_complexity(pwd)
+            self.assertTrue(valid, f"Expected '{pwd}' to pass regex complexity check, got error: {msg}")
+
+        # Invalid passwords failing regex rules
+        invalid_passwords = [
+            ("Pass1!", "must be at least 8 characters"),
+            ("pass1234!", "lowercase letter"), # No uppercase
+            ("PASS1234!", "uppercase letter"), # No lowercase
+            ("Password!", "numeric digit"),   # No number
+            ("Password123", "special character"), # No special char
+            ("", "empty")
+        ]
+        for pwd, reason in invalid_passwords:
+            valid, msg = validate_password_complexity(pwd)
+            self.assertFalse(valid, f"Expected '{pwd}' to fail regex check for {reason}")
 
     def test_password_hashing_and_verification(self):
         password = "SecurePassword123"

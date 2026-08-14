@@ -1,7 +1,36 @@
 import hashlib
 import secrets
+import re
 from typing import Optional, Dict, Any, Tuple
 from database.database import query_db_one, query_df, execute_db, execute_many_db, log_audit_event
+
+PASSWORD_REGEX = r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};\':"\\|,.<>/?`~]).{8,}$'
+
+def validate_password_complexity(password: str) -> Tuple[bool, str]:
+    """
+    Validate password using regex expression:
+    - Minimum 8 characters
+    - At least one lowercase letter (a-z)
+    - At least one uppercase letter (A-Z)
+    - At least one numeric digit (0-9)
+    - At least one special character (!@#$%^&* etc.)
+    """
+    if not password:
+        return False, "Password cannot be empty."
+    if len(password) < 8:
+        return False, "Password must be at least 8 characters long."
+    if not re.search(r'[a-z]', password):
+        return False, "Password must contain at least one lowercase letter (a-z)."
+    if not re.search(r'[A-Z]', password):
+        return False, "Password must contain at least one uppercase letter (A-Z)."
+    if not re.search(r'\d', password):
+        return False, "Password must contain at least one numeric digit (0-9)."
+    if not re.search(r'[!@#$%^&*()_+\-=\[\]{};\':"\\|,.<>/?`~]', password):
+        return False, "Password must contain at least one special character (e.g. !@#$%^&*)."
+    if not re.search(PASSWORD_REGEX, password):
+        return False, "Password does not meet required security complexity rules."
+        
+    return True, "Password meets all complexity requirements."
 
 def hash_password(password: str, salt_hex: Optional[str] = None) -> tuple[str, str]:
     """Generate PBKDF2 password hash."""
@@ -111,6 +140,11 @@ def register_new_store_and_manager(
     
     if not u_clean or not password or not store_name or not s_code_clean:
         return None, "All fields (Username, Password, Store Code, Store Name) are required."
+        
+    # Validate Password Complexity using Regex
+    is_pwd_valid, pwd_msg = validate_password_complexity(password)
+    if not is_pwd_valid:
+        return None, f"Security Policy Violation: {pwd_msg}"
         
     # Check if username exists
     existing_u = query_db_one("SELECT id FROM users WHERE LOWER(username) = ?;", (u_clean,))

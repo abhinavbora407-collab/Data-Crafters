@@ -120,7 +120,8 @@ def render_login_page():
             with st.form("reg_store_manager_form"):
                 st.markdown("##### 👤 Manager Credentials")
                 reg_username = st.text_input("New Manager Username", placeholder="e.g. david.miller", key="reg_u")
-                reg_password = st.text_input("Password", type="password", placeholder="e.g. DavidMgr2026!", key="reg_p")
+                reg_password = st.text_input("Password", type="password", placeholder="e.g. DavidMgr2026!", help="🔒 Password Policy: Min 8 chars, 1 uppercase (A-Z), 1 lowercase (a-z), 1 number (0-9), 1 special char (!@#$%^&*)", key="reg_p")
+                st.caption("🔑 *Policy: Min 8 characters, at least 1 uppercase (A-Z), 1 lowercase (a-z), 1 number (0-9) & 1 special character.*")
                 
                 st.markdown("##### 🏢 Store Branch Details")
                 reg_store_name = st.text_input("New Store Name", placeholder="e.g. Eastside Superstore", key="reg_sn")
