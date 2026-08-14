@@ -5,7 +5,7 @@ from database.database import query_df, execute_many_db
 from forecasting.model import forecast_demand_ridge
 from services.accuracy_service import evaluate_forecast_accuracy
 
-def generate_store_forecasts(forecast_horizon_days: int = 14) -> int:
+def generate_store_forecasts(forecast_horizon_days: int = 7) -> int:
     """Generate and record multi-step demand predictions for all store-product pairs across the network."""
     from database.seed import ensure_sales_history_for_all_stores
     ensure_sales_history_for_all_stores(forecast_horizon_days)
@@ -45,7 +45,7 @@ def generate_store_forecasts(forecast_horizon_days: int = 14) -> int:
     st.cache_data.clear() # Clear cache on new forecast generation
     return inserted
 
-def generate_single_store_forecast(store_id: int, product_id: int, forecast_horizon_days: int = 14) -> int:
+def generate_single_store_forecast(store_id: int, product_id: int, forecast_horizon_days: int = 7) -> int:
     """Generate and record multi-step demand predictions for a single store-product pair (ultra-fast < 20ms)."""
     from database.seed import seed_sales_history_for_store
     hist_df = query_df(

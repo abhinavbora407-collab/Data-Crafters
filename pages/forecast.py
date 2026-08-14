@@ -77,7 +77,7 @@ def render_forecast_page():
     )
     
     if fc_df.empty or hist_df.empty:
-        generate_single_store_forecast(s_id, p_id, 14)
+        generate_single_store_forecast(s_id, p_id, 7)
         fc_df = query_df(
             "SELECT forecast_date, predicted_demand, lower_bound, upper_bound, model_type FROM forecasts WHERE store_id = ? AND product_id = ? ORDER BY forecast_date ASC;",
             (s_id, p_id)
