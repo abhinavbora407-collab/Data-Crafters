@@ -328,29 +328,29 @@ def render_generic_card_grid(
         for col_name, val in row.items():
             if col_name in [title_col, badge_col]:
                 continue
-            v_str = str(val)
-            kv_items.append(f"""
-            <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
-                <span style="color: #94a3b8; font-size: 0.82rem; font-weight: 500;">{col_name}:</span>
-                <span style="color: #f8fafc; font-size: 0.85rem; font-weight: 600; text-align: right;">{v_str}</span>
-            </div>
-            """)
+            v_str = str(val) if pd.notna(val) else "N/A"
+            kv_items.append(
+                f'<div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">'
+                f'<span style="color: #94a3b8; font-size: 0.82rem; font-weight: 500;">{col_name}:</span>'
+                f'<span style="color: #f8fafc; font-size: 0.85rem; font-weight: 600; text-align: right;">{v_str}</span>'
+                f'</div>'
+            )
             
         kv_html = "".join(kv_items)
 
+        card_html = (
+            f'<div class="product-card" style="border-left: 4px solid {border_color}; margin-bottom: 16px;">'
+            f'<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">'
+            f'<span style="font-size: 1.6rem;">{card_icon}</span>'
+            f'{badge_html}'
+            f'</div>'
+            f'<h4 style="margin: 4px 0 12px 0; color: #38bdf8; font-size: 1.05rem; font-weight: 700;">{title_val}</h4>'
+            f'<div style="background: rgba(15, 23, 42, 0.6); padding: 10px 14px; border-radius: 12px; margin-top: 8px;">'
+            f'{kv_html}'
+            f'</div>'
+            f'</div>'
+        )
+
         with cols[c_idx]:
-            st.markdown(f"""
-            <div class="product-card" style="border-left: 4px solid {border_color}; margin-bottom: 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <span style="font-size: 1.6rem;">{card_icon}</span>
-                    {badge_html}
-                </div>
-                <h4 style="margin: 4px 0 12px 0; color: #38bdf8; font-size: 1.05rem; font-weight: 700;">
-                    {title_val}
-                </h4>
-                <div style="background: rgba(15, 23, 42, 0.6); padding: 10px 14px; border-radius: 12px; margin-top: 8px;">
-                    {kv_html}
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(card_html, unsafe_allow_html=True)
 
