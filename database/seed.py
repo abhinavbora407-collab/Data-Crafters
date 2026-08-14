@@ -225,15 +225,9 @@ def seed_database(force_reseed: bool = False):
     finally:
         conn.close()
         
-    try:
-        conn = get_db_connection()
-        fc_cnt = conn.execute("SELECT COUNT(*) as cnt FROM forecasts;").fetchone()
-        conn.close()
-        if not (fc_cnt and fc_cnt['cnt'] > 100 and not force_reseed):
-            from services.forecast_service import generate_store_forecasts
-            generate_store_forecasts(14)
-    except Exception:
-        pass
+    # Database table, product, user, and sales history seeding complete.
+    # ML demand forecasts are generated fast on-demand per store/product.
+    return True
 
 def seed_sales_history_for_store(store_id: int, num_days: int = 14) -> int:
     """Generate synthetic historical sales for all catalog products for a given store_id."""
