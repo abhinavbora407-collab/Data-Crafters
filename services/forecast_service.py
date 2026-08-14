@@ -6,8 +6,15 @@ from forecasting.model import forecast_demand_ridge
 from services.accuracy_service import evaluate_forecast_accuracy
 
 def generate_store_forecasts(forecast_horizon_days: int = 14) -> int:
-    """Generate and record multi-step demand predictions for all store-product pairs."""
-    pairs = query_df("SELECT DISTINCT store_id, product_id FROM sales_history;")
+    """Generate and record multi-step demand predictions for all store-product pairs across the network."""
+    from database.seed import ensure_sales_history_for_all_stores
+    ensure_sales_history_for_all_stores(forecast_horizon_days)
+    
+    pairs = query_df("""
+    SELECT DISTINCT s.id as store_id, p.id as product_id 
+    FROM stores s 
+    CROSS JOIN products p;
+    """)
     if pairs.empty:
         return 0
         

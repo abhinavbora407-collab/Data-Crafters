@@ -66,23 +66,27 @@ def render_forecast_page():
         return
     p_data = dict(selected_prod.iloc[0])
 
-    # Load Forecast Data (Auto-generate if missing)
+    # Load Forecast & Historical Sales Data (Auto-generate if missing)
     fc_df = query_df(
         "SELECT forecast_date, predicted_demand, lower_bound, upper_bound, model_type FROM forecasts WHERE store_id = ? AND product_id = ? ORDER BY forecast_date ASC;",
         (s_id, p_id)
     )
-    if fc_df.empty:
-        with st.spinner("Generating initial ML demand forecasts..."):
+    hist_df = query_df(
+        "SELECT sale_date, quantity_sold FROM sales_history WHERE store_id = ? AND product_id = ? ORDER BY sale_date ASC;",
+        (s_id, p_id)
+    )
+    
+    if fc_df.empty or hist_df.empty:
+        with st.spinner("Generating 14-day sales history & ML demand forecasts..."):
             generate_store_forecasts(14)
             fc_df = query_df(
                 "SELECT forecast_date, predicted_demand, lower_bound, upper_bound, model_type FROM forecasts WHERE store_id = ? AND product_id = ? ORDER BY forecast_date ASC;",
                 (s_id, p_id)
             )
-
-    hist_df = query_df(
-        "SELECT sale_date, quantity_sold FROM sales_history WHERE store_id = ? AND product_id = ? ORDER BY sale_date ASC;",
-        (s_id, p_id)
-    )
+            hist_df = query_df(
+                "SELECT sale_date, quantity_sold FROM sales_history WHERE store_id = ? AND product_id = ? ORDER BY sale_date ASC;",
+                (s_id, p_id)
+            )
 
     # Calculate Overview Metrics
     last_hist_qty = hist_df['quantity_sold'].iloc[-1] if not hist_df.empty else 0

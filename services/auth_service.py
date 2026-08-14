@@ -181,7 +181,7 @@ def register_new_store_and_manager(
     except Exception as inv_err:
         print(f"Notice: Initial inventory seeding for new store {store_id} skipped constraint issue: {inv_err}")
         
-    # 4. Handle optional CSV file upload
+    # 4. Handle CSV upload OR auto-seed sales history & run ML forecasts
     csv_msg = ""
     if csv_file is not None:
         try:
@@ -194,6 +194,19 @@ def register_new_store_and_manager(
             csv_msg = f" CSV Ingested: {inserted} sales records."
         except Exception as ex:
             csv_msg = f" (CSV Notice: {str(ex)})"
+    else:
+        try:
+            from database.seed import seed_sales_history_for_store
+            s_cnt = seed_sales_history_for_store(store_id, 14)
+            csv_msg = f" Auto-generated 14-day sales history & ML forecasts."
+        except Exception as seed_err:
+            print(f"Notice: Auto sales history seeding error: {seed_err}")
+            
+    try:
+        from services.forecast_service import generate_store_forecasts
+        generate_store_forecasts(14)
+    except Exception as fc_err:
+        print(f"Notice: Auto forecast generation error: {fc_err}")
             
     log_audit_event(user_id, u_clean, "REGISTER_NEW_STORE_MANAGER", f"Registered Store: {store_name} ({s_code_clean})")
     

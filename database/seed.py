@@ -230,3 +230,72 @@ def seed_database(force_reseed: bool = False):
         generate_store_forecasts(14)
     except Exception:
         pass
+
+def seed_sales_history_for_store(store_id: int, num_days: int = 14) -> int:
+    """Generate synthetic historical sales for all catalog products for a given store_id."""
+    conn = get_db_connection()
+    try:
+        prod_rows = conn.execute("SELECT id, sku, unit_price FROM products;").fetchall()
+        if not prod_rows:
+            return 0
+            
+        end_date = datetime.date.today() - datetime.timedelta(days=1)
+        start_date = end_date - datetime.timedelta(days=num_days - 1)
+        
+        sales_records = []
+        curr_date = start_date
+        store_mult = 1.0 + ((store_id % 3) * 0.15)
+        
+        while curr_date <= end_date:
+            day_of_week = curr_date.weekday()
+            is_weekend = 1 if day_of_week in (5, 6) else 0
+            month = curr_date.month
+            day = curr_date.day
+            is_holiday = 1 if (month == 11 and day >= 20 and day <= 30) or (month == 12 and day >= 20) or (month == 7 and day <= 10) else 0
+            
+            for p_row in prod_rows:
+                price = float(p_row['unit_price'])
+                base_qty = 8 if price > 200 else (20 if price > 50 else 50)
+                
+                day_idx = (curr_date - start_date).days
+                seasonal = 1.0 + 0.35 * math.sin(2 * math.pi * day_idx / 14.0)
+                weekend = 1.35 if is_weekend else 1.0
+                holiday = 1.6 if is_holiday else 1.0
+                is_promo = 1 if random.random() < 0.10 else 0
+                promo = 1.4 if is_promo else 1.0
+                noise = random.gauss(1.0, 0.12)
+                
+                calc_qty = max(1, int(base_qty * store_mult * seasonal * weekend * holiday * promo * noise))
+                revenue = round(calc_qty * price, 2)
+                
+                sales_records.append((
+                    store_id, p_row['id'], curr_date.strftime("%Y-%m-%d"), calc_qty, revenue, is_promo, is_holiday
+                ))
+            curr_date += datetime.timedelta(days=1)
+            
+        inserted = execute_many_db(
+            """INSERT OR IGNORE INTO sales_history 
+               (store_id, product_id, sale_date, quantity_sold, revenue, is_promotion, is_holiday) 
+               VALUES (?, ?, ?, ?, ?, ?, ?);""",
+            sales_records
+        )
+        return inserted
+    finally:
+        conn.close()
+
+def ensure_sales_history_for_all_stores(num_days: int = 14) -> int:
+    """Check all registered store branches and generate historical sales for any store lacking history."""
+    conn = get_db_connection()
+    try:
+        store_rows = conn.execute("SELECT id FROM stores;").fetchall()
+        if not store_rows:
+            return 0
+        total_added = 0
+        for r in store_rows:
+            s_id = r['id']
+            cnt = conn.execute("SELECT COUNT(*) as c FROM sales_history WHERE store_id = ?;", (s_id,)).fetchone()
+            if not cnt or cnt['c'] < 10:
+                total_added += seed_sales_history_for_store(s_id, num_days)
+        return total_added
+    finally:
+        conn.close()
