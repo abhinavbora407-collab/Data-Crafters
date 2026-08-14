@@ -23,13 +23,13 @@ st.set_page_config(
 
 apply_custom_css()
 
-# Initialize and ensure database & realistic accounts exist once on server startup
-@st.cache_resource
-def init_system_db():
-    seed_database()
-    return True
-
-init_system_db()
+# Ensure database schema, tables, and seed data are initialized once per session
+if "db_initialized" not in st.session_state:
+    try:
+        seed_database()
+    except Exception as db_err:
+        print(f"Notice: Database initialization notice: {db_err}")
+    st.session_state["db_initialized"] = True
 
 if "user" not in st.session_state:
     st.session_state["user"] = None
