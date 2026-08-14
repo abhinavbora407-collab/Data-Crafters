@@ -23,8 +23,7 @@ st.set_page_config(
 
 apply_custom_css()
 
-# Seed database ONCE on server startup using @st.cache_resource
-@st.cache_resource
+# Initialize and ensure database & realistic accounts exist on startup
 def init_system_db():
     seed_database()
     return True
