@@ -100,29 +100,26 @@ def apply_custom_css():
 
 def render_header(title: str, subtitle: str, user_info: str = ""):
     """Render application header banner."""
-    st.markdown(f"""
-    <div class="app-header">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <h1 class="app-title">{title}</h1>
-                <p class="app-subtitle">{subtitle}</p>
-            </div>
-            <div style="text-align: right;">
-                <span class="badge badge-purple">{user_info}</span>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    header_html = (
+        f'<div class="app-header">'
+        f'<div style="display: flex; justify-content: space-between; align-items: center;">'
+        f'<div><h1 class="app-title">{title}</h1><p class="app-subtitle">{subtitle}</p></div>'
+        f'<div style="text-align: right;"><span class="badge badge-purple">{user_info}</span></div>'
+        f'</div>'
+        f'</div>'
+    )
+    st.markdown(header_html, unsafe_allow_html=True)
 
 def render_metric_card(label: str, value: str, subtext: str = "", border_color: str = "#38bdf8"):
     """Render metric card widget."""
-    st.markdown(f"""
-    <div class="metric-card" style="border-left: 4px solid {border_color};">
-        <div class="metric-label">{label}</div>
-        <div class="metric-value">{value}</div>
-        <div class="metric-sub">{subtext}</div>
-    </div>
-    """, unsafe_allow_html=True)
+    metric_html = (
+        f'<div class="metric-card" style="border-left: 4px solid {border_color};">'
+        f'<div class="metric-label">{label}</div>'
+        f'<div class="metric-value">{value}</div>'
+        f'<div class="metric-sub">{subtext}</div>'
+        f'</div>'
+    )
+    st.markdown(metric_html, unsafe_allow_html=True)
 
 def render_paginated_dataframe(df: pd.DataFrame, page_size: int = 10, key_prefix: str = "table") -> pd.DataFrame:
     """Render high-speed paginated DataFrame table with page controls for sub-millisecond DOM rendering (Max 10 items)."""
@@ -222,39 +219,40 @@ def render_product_card_grid(risk_df: pd.DataFrame, page_size: int = 10, key_pre
         status_key = row.get('status', 'OPTIMAL')
         b_class, b_label, b_color = STATUS_BADGE_MAP.get(status_key, ("badge-green", "✅ Healthy", "#22c55e"))
         
+        card_html = (
+            f'<div class="product-card" style="border-top: 4px solid {b_color}; margin-bottom: 16px;">'
+            f'<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">'
+            f'<span style="font-size: 2.0rem;">{cat_icon}</span>'
+            f'<span class="badge {b_class}">{b_label}</span>'
+            f'</div>'
+            f'<div style="font-size: 0.75rem; color: #94a3b8; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;">'
+            f'{row.get("sku", "")} • {cat_name}'
+            f'</div>'
+            f'<h3 style="margin: 6px 0 12px 0; color: #f8fafc; font-size: 1.1rem; line-height: 1.3;">'
+            f'{row.get("product_name", "")}'
+            f'</h3>'
+            f'<div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 12px; font-size: 0.85rem; margin-bottom: 12px;">'
+            f'<div style="display: flex; justify-content: space-between; margin-bottom: 6px;">'
+            f'<span style="color: #94a3b8;">Current Stock:</span>'
+            f'<b style="color: #f8fafc; font-size: 0.95rem;">{row.get("current_stock", 0)} units</b>'
+            f'</div>'
+            f'<div style="display: flex; justify-content: space-between; margin-bottom: 6px;">'
+            f'<span style="color: #94a3b8;">Reorder Point:</span>'
+            f'<b style="color: #fde68a;">{row.get("reorder_point", 0)} units</b>'
+            f'</div>'
+            f'<div style="display: flex; justify-content: space-between;">'
+            f'<span style="color: #94a3b8;">Daily Demand:</span>'
+            f'<b style="color: #38bdf8;">{row.get("avg_daily_demand", 0.0)} units/day</b>'
+            f'</div>'
+            f'</div>'
+            f'<div style="display: flex; justify-content: space-between; align-items: center;">'
+            f'<span style="font-size: 0.8rem; color: #cbd5e1;">Price: <b style="color: #22c55e;">${row.get("unit_price", 0.0):.2f}</b></span>'
+            f'<span style="font-size: 0.8rem; color: #cbd5e1;">Reorder: <b style="color: #f59e0b;">{row.get("suggested_reorder_qty", 0)} units</b></span>'
+            f'</div>'
+            f'</div>'
+        )
         with cols[c_idx]:
-            st.markdown(f"""
-            <div class="product-card" style="border-top: 4px solid {b_color}; margin-bottom: 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <span style="font-size: 2.0rem;">{cat_icon}</span>
-                    <span class="badge {b_class}">{b_label}</span>
-                </div>
-                <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;">
-                    {row.get('sku', '')} • {cat_name}
-                </div>
-                <h3 style="margin: 6px 0 12px 0; color: #f8fafc; font-size: 1.1rem; line-height: 1.3;">
-                    {row.get('product_name', '')}
-                </h3>
-                <div style="background: rgba(15, 23, 42, 0.6); padding: 12px; border-radius: 12px; font-size: 0.85rem; margin-bottom: 12px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                        <span style="color: #94a3b8;">Current Stock:</span>
-                        <b style="color: #f8fafc; font-size: 0.95rem;">{row.get('current_stock', 0)} units</b>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                        <span style="color: #94a3b8;">Reorder Point:</span>
-                        <b style="color: #fde68a;">{row.get('reorder_point', 0)} units</b>
-                    </div>
-                    <div style="display: flex; justify-content: space-between;">
-                        <span style="color: #94a3b8;">Daily Demand:</span>
-                        <b style="color: #38bdf8;">{row.get('avg_daily_demand', 0.0)} units/day</b>
-                    </div>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 0.8rem; color: #cbd5e1;">Price: <b style="color: #22c55e;">${row.get('unit_price', 0.0):.2f}</b></span>
-                    <span style="font-size: 0.8rem; color: #cbd5e1;">Reorder: <b style="color: #f59e0b;">{row.get('suggested_reorder_qty', 0)} units</b></span>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown(card_html, unsafe_allow_html=True)
 
 def render_generic_card_grid(
     df: pd.DataFrame,

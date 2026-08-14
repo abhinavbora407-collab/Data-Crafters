@@ -26,16 +26,17 @@ def render_login_page():
             st.rerun()
         return
 
-    st.markdown("""
-    <div style="text-align: center; margin-top: 15px; margin-bottom: 25px;">
-        <h1 style="font-size: 2.6rem; background: linear-gradient(90deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800;">
-            📊 Retail Demand Forecasting Platform
-        </h1>
-        <p style="color: #94a3b8; font-size: 1.05rem;">
-            CodeGnan Data Crafters • Inventory Analytics, ML Demand Forecasting & Role-Based Access Control
-        </p>
-    </div>
-    """, unsafe_allow_html=True)
+    top_header_html = (
+        f'<div style="text-align: center; margin-top: 15px; margin-bottom: 25px;">'
+        f'<h1 style="font-size: 2.6rem; background: linear-gradient(90deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800;">'
+        f'📊 Retail Demand Forecasting Platform'
+        f'</h1>'
+        f'<p style="color: #94a3b8; font-size: 1.05rem;">'
+        f'CodeGnan Data Crafters • Inventory Analytics, ML Demand Forecasting & Role-Based Access Control'
+        f'</p>'
+        f'</div>'
+    )
+    st.markdown(top_header_html, unsafe_allow_html=True)
     
     tab_mgr, tab_reg, tab_admin = st.tabs([
         "🏪 Store Manager Sign In",
@@ -47,75 +48,77 @@ def render_login_page():
     with tab_mgr:
         col1, col2, col3 = st.columns([1, 1.4, 1])
         with col2:
-            st.markdown("""
-            <div style="background: rgba(30, 41, 59, 0.7); border-radius: 16px; padding: 24px; border: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-                <h3 style="margin-top: 0; color: #38bdf8; text-align: center;">🏪 Store Manager Login</h3>
-                <p style="color: #94a3b8; font-size: 0.9rem; text-align: center;">Select store branch & enter credentials to access inventory stock analysis</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
+            mgr_header_html = (
+                f'<div style="background: rgba(30, 41, 59, 0.7); border-radius: 16px; padding: 24px; border: 1px solid rgba(56, 189, 248, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">'
+                f'<h3 style="margin-top: 0; color: #38bdf8; text-align: center;">🏪 Store Manager Login</h3>'
+                f'<p style="color: #94a3b8; font-size: 0.9rem; text-align: center;">Select store branch & enter credentials to access inventory stock analysis</p>'
+                f'</div>'
+            )
+            st.markdown(mgr_header_html, unsafe_allow_html=True)
+
             stores_df = query_df("SELECT id, store_code, store_name FROM stores ORDER BY store_code ASC;")
             
             store_user_mapping = {
                 "ALL": ("alex.morgan", "🌐 All Stores Regional Operations", "Alex Morgan (Regional Operations Director)", "AlexOps2026!"),
-                "STR-001": ("marcus.chen", "Downtown Flagship Store", "Marcus Chen (Senior Store Manager)", "MarcusMgr2026!"),
-                "STR-002": ("rachel.davis", "Suburban Retail Center", "Rachel Davis (Store Operations Manager)", "RachelMgr2026!"),
-                "STR-003": ("karan.patel", "Northside Hypermarket", "Karan Patel (Hypermarket Manager)", "KaranMgr2026!"),
-                "STR-004": ("jessica.taylor", "Express Station Hub", "Jessica Taylor (Express Hub Manager)", "JessicaMgr2026!")
+                "STR-001": ("marcus.chen", "🏢 Downtown Flagship Store", "Marcus Chen (Store Manager)", "MarcusMgr2026!"),
+                "STR-002": ("rachel.davis", "🏬 Suburban Retail Center", "Rachel Davis (Store Manager)", "RachelMgr2026!"),
+                "STR-003": ("karan.patel", "🛒 Northside Hypermarket", "Karan Patel (Store Manager)", "KaranMgr2026!"),
+                "STR-004": ("jessica.taylor", "🚉 Express Station Hub", "Jessica Taylor (Store Manager)", "JessicaMgr2026!")
             }
-            
-            store_options = {"ALL": "🌐 All Stores Regional Operations (Switch Any Store)"}
-            for _, row in stores_df.iterrows():
-                store_options[row['store_code']] = f"🏢 {row['store_name']} ({row['store_code']})"
-                
-            selected_store_code = st.selectbox(
-                "📍 Select Store Branch to Access",
-                options=list(store_options.keys()),
-                format_func=lambda x: store_options[x],
-                key="store_branch_select"
+
+            options = [("ALL", "🌐 All Stores Regional Operations - Alex Morgan")]
+            for _, r in stores_df.iterrows():
+                code = r['store_code']
+                name = r['store_name']
+                if code in store_user_mapping:
+                    label = f"{store_user_mapping[code][1]} - {store_user_mapping[code][2].split(' (')[0]}"
+                else:
+                    label = f"🏢 {code}: {name}"
+                options.append((code, label))
+
+            sel_tuple = st.selectbox(
+                "Select Store Branch",
+                options=options,
+                format_func=lambda x: x[1],
+                key="store_sel"
             )
+            sel_code = sel_tuple[0]
             
-            default_uname, default_sname, default_mgr_name, default_pass = store_user_mapping.get(
-                selected_store_code, ("marcus.chen", "Downtown Flagship Store", "Marcus Chen (Senior Store Manager)", "MarcusMgr2026!")
-            )
+            default_user = "alex.morgan"
+            default_pass = "AlexOps2026!"
+            mgr_title = "Alex Morgan (Regional Operations Director)"
             
-            with st.form(f"mgr_login_form_{selected_store_code}"):
-                st.markdown(f"**Assigned Manager**: `{default_mgr_name}` • **Branch Scope**: `{default_sname}`")
-                username = st.text_input("Manager Corporate Username or Store Code", value=default_uname, key=f"u_{selected_store_code}")
-                password = st.text_input("Password", type="password", value=default_pass, key=f"p_{selected_store_code}")
-                submit_mgr = st.form_submit_button(f"Sign In to {default_sname}")
+            if sel_code in store_user_mapping:
+                default_user, _, mgr_title, default_pass = store_user_mapping[sel_code]
+
+            st.caption(f"👤 **Store Manager Profile**: `{mgr_title}`")
+
+            with st.form("mgr_login_form"):
+                username = st.text_input("Manager Corporate Username or Store Code", value=default_user, key="mgr_user")
+                password = st.text_input("Password", type="password", value=default_pass, key="mgr_pass")
+                submit = st.form_submit_button("Sign In to Store Dashboard")
                 
-                if submit_mgr:
+                if submit:
                     user, msg = authenticate_user(username, password, required_role="manager")
                     if user:
                         st.session_state["user"] = user
-                        st.success(f"✅ Authenticated! Welcome Manager {user['username']}. Opening dashboard...")
+                        st.success(f"✅ Authenticated! Welcome {user['username']}.")
                         time.sleep(1.2)
                         st.rerun()
                     else:
                         st.error(f"❌ {msg}")
-                        
-            st.info("""
-            💡 **Realistic Corporate Manager Logins**:
-            - 🌐 **All Stores Regional Access**: Username: `alex.morgan` | Pass: `AlexOps2026!` *(Alex Morgan, Regional Director)*
-            - 🏢 **Downtown Flagship Store**: Username: `marcus.chen` | Pass: `MarcusMgr2026!` *(Marcus Chen, Senior Manager)*
-            - 🏬 **Suburban Retail Center**: Username: `rachel.davis` | Pass: `RachelMgr2026!` *(Rachel Davis, Store Manager)*
-            - 🛒 **Northside Hypermarket**: Username: `karan.patel` | Pass: `KaranMgr2026!` *(Karan Patel, Hypermarket Manager)*
-            - 🚉 **Express Station Hub**: Username: `jessica.taylor` | Pass: `JessicaMgr2026!` *(Jessica Taylor, Hub Manager)*
-
-            *(Note: Legacy store codes `STR-001` to `STR-004` and `manager123` fallback passwords remain active.)*
-            """)
 
     # 2. REGISTER NEW STORE & MANAGER PORTAL
     with tab_reg:
         col1, col2, col3 = st.columns([1, 1.5, 1])
         with col2:
-            st.markdown("""
-            <div style="background: rgba(30, 41, 59, 0.7); border-radius: 16px; padding: 24px; border: 1px solid rgba(34, 197, 94, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-                <h3 style="margin-top: 0; color: #4ade80; text-align: center;">📝 Register New Store & Manager</h3>
-                <p style="color: #94a3b8; font-size: 0.9rem; text-align: center;">Create a new retail branch account and upload product history CSV</p>
-            </div>
-            """, unsafe_allow_html=True)
+            reg_header_html = (
+                f'<div style="background: rgba(30, 41, 59, 0.7); border-radius: 16px; padding: 24px; border: 1px solid rgba(34, 197, 94, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">'
+                f'<h3 style="margin-top: 0; color: #4ade80; text-align: center;">📝 Register New Store & Manager</h3>'
+                f'<p style="color: #94a3b8; font-size: 0.9rem; text-align: center;">Create a new retail branch account and upload product history CSV</p>'
+                f'</div>'
+            )
+            st.markdown(reg_header_html, unsafe_allow_html=True)
             
             with st.form("reg_store_manager_form"):
                 st.markdown("##### 👤 Manager Credentials")
@@ -154,12 +157,13 @@ def render_login_page():
     with tab_admin:
         col1, col2, col3 = st.columns([1, 1.4, 1])
         with col2:
-            st.markdown("""
-            <div style="background: rgba(30, 41, 59, 0.7); border-radius: 16px; padding: 24px; border: 1px solid rgba(168, 85, 247, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-                <h3 style="margin-top: 0; color: #c084fc; text-align: center;">🛡️ Admin Security Portal</h3>
-                <p style="color: #94a3b8; font-size: 0.9rem; text-align: center;">Access all stores, CSV dataset ingestion, ML model trainer & accuracy analytics</p>
-            </div>
-            """, unsafe_allow_html=True)
+            admin_header_html = (
+                f'<div style="background: rgba(30, 41, 59, 0.7); border-radius: 16px; padding: 24px; border: 1px solid rgba(168, 85, 247, 0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">'
+                f'<h3 style="margin-top: 0; color: #c084fc; text-align: center;">🛡️ Admin Security Portal</h3>'
+                f'<p style="color: #94a3b8; font-size: 0.9rem; text-align: center;">Access all stores, CSV dataset ingestion, ML model trainer & accuracy analytics</p>'
+                f'</div>'
+            )
+            st.markdown(admin_header_html, unsafe_allow_html=True)
             
             with st.form("admin_login_form"):
                 admin_username = st.text_input("Admin Username", value="sarah.jenkins", key="admin_user")
