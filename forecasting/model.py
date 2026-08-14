@@ -5,9 +5,9 @@ from sklearn.linear_model import Ridge
 from statsmodels.tsa.holtwinters import ExponentialSmoothing
 from forecasting.preprocessing import create_time_features
 
-def forecast_demand_ridge(df: pd.DataFrame, horizon: int = 14) -> pd.DataFrame:
+def forecast_demand_ridge(df: pd.DataFrame, horizon: int = 7) -> pd.DataFrame:
     """Train Ridge regression time-series model and return multi-step predictions."""
-    if df.empty or len(df) < 14:
+    if df.empty or len(df) < 3:
         last_date = datetime.date.today()
         dates = [last_date + datetime.timedelta(days=i) for i in range(1, horizon + 1)]
         return pd.DataFrame({
