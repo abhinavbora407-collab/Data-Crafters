@@ -123,6 +123,10 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 );
 """
 
+CREATE_IDX_SALES = "CREATE INDEX IF NOT EXISTS idx_sales_history_store_prod ON sales_history (store_id, product_id, sale_date);"
+CREATE_IDX_FORECASTS = "CREATE INDEX IF NOT EXISTS idx_forecasts_store_prod ON forecasts (store_id, product_id, forecast_date);"
+CREATE_IDX_INVENTORY = "CREATE INDEX IF NOT EXISTS idx_inventory_store_prod ON inventory (store_id, product_id);"
+
 ALL_TABLE_STATEMENTS = [
     CREATE_STORES_TABLE,
     CREATE_CATEGORIES_TABLE,
@@ -132,5 +136,8 @@ ALL_TABLE_STATEMENTS = [
     CREATE_SALES_HISTORY_TABLE,
     CREATE_FORECASTS_TABLE,
     CREATE_ACCURACY_LOGS_TABLE,
-    CREATE_AUDIT_LOGS_TABLE
+    CREATE_AUDIT_LOGS_TABLE,
+    CREATE_IDX_SALES,
+    CREATE_IDX_FORECASTS,
+    CREATE_IDX_INVENTORY
 ]

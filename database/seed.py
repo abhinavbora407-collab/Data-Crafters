@@ -230,9 +230,14 @@ def seed_database(force_reseed: bool = False):
     return True
 
 def seed_sales_history_for_store(store_id: int, num_days: int = 14) -> int:
-    """Generate synthetic historical sales for all catalog products for a given store_id."""
+    """Generate synthetic historical sales for all catalog products for a given store_id (Strictly Idempotent)."""
     conn = get_db_connection()
     try:
+        # Idempotency check: Skip regeneration if sales history already exists for this store_id
+        cnt = conn.execute("SELECT COUNT(*) as c FROM sales_history WHERE store_id = ?;", (store_id,)).fetchone()
+        if cnt and cnt['c'] >= 50:
+            return 0
+            
         prod_rows = conn.execute("SELECT id, sku, unit_price FROM products;").fetchall()
         if not prod_rows:
             return 0
