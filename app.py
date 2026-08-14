@@ -13,6 +13,7 @@ from pages.admin_dashboard import render_admin_dashboard
 from pages.sales_upload import render_sales_upload_page
 from pages.forecast import render_forecast_page
 from pages.accuracy import render_accuracy_page
+from pages.ai_chat import render_ai_chat_page
 
 st.set_page_config(
     page_title="Retail Sales Forecasting & Demand Analytics",
@@ -75,10 +76,14 @@ def run_forecast_page():
 def run_accuracy_page():
     render_accuracy_page()
 
+def run_ai_chat_page():
+    render_ai_chat_page()
+
 # Define Pages with explicit unique url_path parameters
 login_page = st.Page(run_login_page, title="Sign In Portal", icon="🔐", url_path="login", default=True)
 manager_page = st.Page(run_manager_dashboard_page, title="Store Manager Dashboard", icon="🛒", url_path="manager_dashboard")
 admin_page = st.Page(run_admin_dashboard_page, title="Admin Portal", icon="📊", url_path="admin_dashboard")
+ai_chat_page = st.Page(run_ai_chat_page, title="AI Inventory Assistant", icon="🤖", url_path="ai_chat")
 upload_page = st.Page(run_sales_upload_page, title="Sales CSV Ingestion", icon="📥", url_path="sales_upload")
 forecast_page = st.Page(run_forecast_page, title="Demand Forecast Engine", icon="📈", url_path="forecast")
 accuracy_page = st.Page(run_accuracy_page, title="Forecast Accuracy (MAPE/RMSE)", icon="🎯", url_path="accuracy")
@@ -87,8 +92,8 @@ accuracy_page = st.Page(run_accuracy_page, title="Forecast Accuracy (MAPE/RMSE)"
 if current_user is None:
     pg = st.navigation([login_page])
 elif current_user['role'] == 'manager':
-    pg = st.navigation([manager_page])
+    pg = st.navigation([manager_page, ai_chat_page])
 else:
-    pg = st.navigation([admin_page, accuracy_page, forecast_page, upload_page, manager_page])
+    pg = st.navigation([admin_page, ai_chat_page, accuracy_page, forecast_page, upload_page, manager_page])
 
 pg.run()
