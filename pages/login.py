@@ -57,11 +57,11 @@ def render_login_page():
             stores_df = query_df("SELECT id, store_code, store_name FROM stores ORDER BY store_code ASC;")
             
             store_user_mapping = {
-                "ALL": ("manager_all", "🌐 All Stores Regional Operations"),
-                "STR-001": ("manager_downtown", "Downtown Flagship Store"),
-                "STR-002": ("manager_suburban", "Suburban Retail Center"),
-                "STR-003": ("manager_northside", "Northside Hypermarket"),
-                "STR-004": ("manager_express", "Express Station Hub")
+                "ALL": ("alex.morgan", "🌐 All Stores Regional Operations", "Alex Morgan (Regional Operations Director)", "AlexOps2026!"),
+                "STR-001": ("marcus.chen", "Downtown Flagship Store", "Marcus Chen (Senior Store Manager)", "MarcusMgr2026!"),
+                "STR-002": ("rachel.davis", "Suburban Retail Center", "Rachel Davis (Store Operations Manager)", "RachelMgr2026!"),
+                "STR-003": ("karan.patel", "Northside Hypermarket", "Karan Patel (Hypermarket Manager)", "KaranMgr2026!"),
+                "STR-004": ("jessica.taylor", "Express Station Hub", "Jessica Taylor (Express Hub Manager)", "JessicaMgr2026!")
             }
             
             store_options = {"ALL": "🌐 All Stores Regional Operations (Switch Any Store)"}
@@ -75,31 +75,35 @@ def render_login_page():
                 key="store_branch_select"
             )
             
-            default_uname, default_sname = store_user_mapping.get(selected_store_code, ("manager_downtown", "Downtown Flagship Store"))
+            default_uname, default_sname, default_mgr_name, default_pass = store_user_mapping.get(
+                selected_store_code, ("marcus.chen", "Downtown Flagship Store", "Marcus Chen (Senior Store Manager)", "MarcusMgr2026!")
+            )
             
             with st.form(f"mgr_login_form_{selected_store_code}"):
-                st.markdown(f"**Branch Scope**: `{default_sname}`")
-                username = st.text_input("Manager Account Username or Store Code", value=default_uname, key=f"u_{selected_store_code}")
-                password = st.text_input("Password", type="password", value="manager123", key=f"p_{selected_store_code}")
+                st.markdown(f"**Assigned Manager**: `{default_mgr_name}` • **Branch Scope**: `{default_sname}`")
+                username = st.text_input("Manager Corporate Username or Store Code", value=default_uname, key=f"u_{selected_store_code}")
+                password = st.text_input("Password", type="password", value=default_pass, key=f"p_{selected_store_code}")
                 submit_mgr = st.form_submit_button(f"Sign In to {default_sname}")
                 
                 if submit_mgr:
                     user, msg = authenticate_user(username, password, required_role="manager")
                     if user:
                         st.session_state["user"] = user
-                        st.success(f"✅ Credentials Recorded! Welcome Manager {user['username']}. Opening dashboard...")
+                        st.success(f"✅ Authenticated! Welcome Manager {user['username']}. Opening dashboard...")
                         time.sleep(1.2)
                         st.rerun()
                     else:
                         st.error(f"❌ {msg}")
                         
             st.info("""
-            💡 **Manager Logins for Retail Stores**:
-            - 🌐 **All Stores Regional Access**: Username: `manager_all` | Pass: `manager123`
-            - 🏢 **Downtown Flagship Store**: Username: `manager_downtown` | Pass: `manager123`
-            - 🏬 **Suburban Retail Center**: Username: `manager_suburban` | Pass: `manager123`
-            - 🛒 **Northside Hypermarket**: Username: `manager_northside` | Pass: `manager123`
-            - 🚉 **Express Station Hub**: Username: `manager_express` | Pass: `manager123`
+            💡 **Realistic Corporate Manager Logins**:
+            - 🌐 **All Stores Regional Access**: Username: `alex.morgan` | Pass: `AlexOps2026!` *(Alex Morgan, Regional Director)*
+            - 🏢 **Downtown Flagship Store**: Username: `marcus.chen` | Pass: `MarcusMgr2026!` *(Marcus Chen, Senior Manager)*
+            - 🏬 **Suburban Retail Center**: Username: `rachel.davis` | Pass: `RachelMgr2026!` *(Rachel Davis, Store Manager)*
+            - 🛒 **Northside Hypermarket**: Username: `karan.patel` | Pass: `KaranMgr2026!` *(Karan Patel, Hypermarket Manager)*
+            - 🚉 **Express Station Hub**: Username: `jessica.taylor` | Pass: `JessicaMgr2026!` *(Jessica Taylor, Hub Manager)*
+
+            *(Note: Legacy store codes `STR-001` to `STR-004` and `manager123` fallback passwords remain active.)*
             """)
 
     # 2. REGISTER NEW STORE & MANAGER PORTAL
@@ -115,8 +119,8 @@ def render_login_page():
             
             with st.form("reg_store_manager_form"):
                 st.markdown("##### 👤 Manager Credentials")
-                reg_username = st.text_input("New Manager Username", placeholder="e.g. manager_east", key="reg_u")
-                reg_password = st.text_input("Password", type="password", placeholder="e.g. password123", key="reg_p")
+                reg_username = st.text_input("New Manager Username", placeholder="e.g. david.miller", key="reg_u")
+                reg_password = st.text_input("Password", type="password", placeholder="e.g. DavidMgr2026!", key="reg_p")
                 
                 st.markdown("##### 🏢 Store Branch Details")
                 reg_store_name = st.text_input("New Store Name", placeholder="e.g. Eastside Superstore", key="reg_sn")
@@ -157,23 +161,24 @@ def render_login_page():
             """, unsafe_allow_html=True)
             
             with st.form("admin_login_form"):
-                admin_username = st.text_input("Admin Username", value="admin", key="admin_user")
-                admin_password = st.text_input("Password", type="password", value="admin123", key="admin_pass")
+                admin_username = st.text_input("Admin Username", value="sarah.jenkins", key="admin_user")
+                admin_password = st.text_input("Password", type="password", value="SarahAdmin2026!", key="admin_pass")
                 submit_admin = st.form_submit_button("Sign In as Administrator")
                 
                 if submit_admin:
                     user, msg = authenticate_user(admin_username, admin_password, required_role="admin")
                     if user:
                         st.session_state["user"] = user
-                        st.success(f"✅ Credentials Recorded! Welcome Administrator {user['username']}. Full Access Granted.")
+                        st.success(f"✅ Authenticated! Welcome Administrator {user['username']}. Full Access Granted.")
                         time.sleep(1.2)
                         st.rerun()
                     else:
                         st.error(f"❌ {msg}")
                         
             st.warning("""
-            🔐 **Admin Portal Demo Account**:
-            - Username: `admin` | Password: `admin123`
+            🔐 **Administrator Executive Account**:
+            - Username: `sarah.jenkins` | Password: `SarahAdmin2026!` *(Sarah Jenkins, Chief Systems Administrator)*
+            - *(Legacy fallback: `admin` | `admin123` also supported)*
             """)
 
 if __name__ == "__main__":

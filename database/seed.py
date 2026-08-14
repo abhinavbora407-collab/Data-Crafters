@@ -101,21 +101,34 @@ def seed_database(force_reseed: bool = False):
         
         # 4. Store Managers + Regional All-Stores Manager + Admin
         users_to_create = [
+            # System Director & Administrators
+            ("sarah.jenkins", "SarahAdmin2026!", "sarah.jenkins@retailchain.com", "admin", None, None),
             ("admin", "admin123", "admin@retailchain.com", "admin", None, None),
+            
+            # Regional Operations Directors (All-Stores Access)
+            ("alex.morgan", "AlexOps2026!", "alex.morgan@retailchain.com", "manager", None, None),
             ("manager_all", "manager123", "regional.mgr@retailchain.com", "manager", None, None),
             ("manager_regional", "manager123", "regional.mgr2@retailchain.com", "manager", None, None),
             
+            # Downtown Flagship Store (STR-001)
+            ("marcus.chen", "MarcusMgr2026!", "marcus.chen@retailchain.com", "manager", store_map["STR-001"], None),
             ("manager_downtown", "manager_downtown123", "downtown.mgr@retailchain.com", "manager", store_map["STR-001"], None),
             ("manager", "manager123", "downtown.alias@retailchain.com", "manager", store_map["STR-001"], None),
             ("str-001", "manager123", "str001@retailchain.com", "manager", store_map["STR-001"], None),
             
+            # Suburban Retail Center (STR-002)
+            ("rachel.davis", "RachelMgr2026!", "rachel.davis@retailchain.com", "manager", store_map["STR-002"], None),
             ("manager_suburban", "manager_suburban123", "suburban.mgr@retailchain.com", "manager", store_map["STR-002"], None),
             ("manager_west", "manager123", "suburban.alias@retailchain.com", "manager", store_map["STR-002"], None),
             ("str-002", "manager123", "str002@retailchain.com", "manager", store_map["STR-002"], None),
             
+            # Northside Hypermarket (STR-003)
+            ("karan.patel", "KaranMgr2026!", "karan.patel@retailchain.com", "manager", store_map["STR-003"], None),
             ("manager_northside", "manager_northside123", "northside.mgr@retailchain.com", "manager", store_map["STR-003"], None),
             ("str-003", "manager123", "str003@retailchain.com", "manager", store_map["STR-003"], None),
             
+            # Express Station Hub (STR-004)
+            ("jessica.taylor", "JessicaMgr2026!", "jessica.taylor@retailchain.com", "manager", store_map["STR-004"], None),
             ("manager_express", "manager_express123", "express.mgr@retailchain.com", "manager", store_map["STR-004"], None),
             ("str-004", "manager123", "str004@retailchain.com", "manager", store_map["STR-004"], None),
         ]

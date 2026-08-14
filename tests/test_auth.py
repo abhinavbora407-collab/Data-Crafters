@@ -23,13 +23,22 @@ class TestAuthService(unittest.TestCase):
         self.assertFalse(is_manager(admin_user))
 
     def test_role_specific_authentication(self):
-        # Admin authentication test
-        admin_user, msg = authenticate_user("admin", "admin123", required_role="admin")
+        # Realistic Admin authentication test
+        admin_user, msg = authenticate_user("sarah.jenkins", "SarahAdmin2026!", required_role="admin")
         self.assertIsNotNone(admin_user)
         self.assertEqual(admin_user['role'], "admin")
+
+        # Realistic Manager authentication test
+        mgr_user, msg = authenticate_user("marcus.chen", "MarcusMgr2026!", required_role="manager")
+        self.assertIsNotNone(mgr_user)
+        self.assertEqual(mgr_user['role'], "manager")
         
+        # Legacy fallback authentication test
+        legacy_admin, _ = authenticate_user("admin", "admin123", required_role="admin")
+        self.assertIsNotNone(legacy_admin)
+
         # Trying to log in admin as manager on manager portal should fail role check
-        wrong_role_user, msg = authenticate_user("admin", "admin123", required_role="manager")
+        wrong_role_user, msg = authenticate_user("sarah.jenkins", "SarahAdmin2026!", required_role="manager")
         self.assertIsNone(wrong_role_user)
         self.assertIn("Access denied", msg)
 
